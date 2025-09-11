@@ -6,7 +6,6 @@ import path from "path";
 
 config();
 const app = express();
-const PORT = process.env.PORT || 5001;
 
 //Middleware stuff
 app.use(express.json());
@@ -15,8 +14,7 @@ app.use(express.json());
 //Devlogging stuff
 
 //Main Route (dapat mag-isa lang ito)
-app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
-});
 
 //Production stuff
+
+export default app;
