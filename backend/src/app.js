@@ -2,6 +2,7 @@ import express from "express";
 import { config } from "dotenv";
 import cors from "cors";
 import path from "path";
+import appRouter from "./routes/appRoutes.js";
 //import appRouter from "./routes/appRoutes";
 
 config();
@@ -14,7 +15,7 @@ app.use(express.json());
 //Devlogging stuff
 
 //Main Route (dapat mag-isa lang ito)
-
+app.use("/api/v1", appRouter);
 //Production stuff
 
 export default app;
