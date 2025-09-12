@@ -1,9 +1,11 @@
 import User from "../models/User.js";
 import { compare, hash } from "bcrypt";
+import { createToken } from "../utils/tokenManager.js";
+import { COOKIE_NAME } from "../utils/constants.js";
 
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find().sort({ createdAt: -1 });
     return res
       .status(200)
       .json({ message: "Successfully retrieved a list of users: ", users });
@@ -33,7 +35,24 @@ export const createUser = async (req, res) => {
       role,
     });
     await user.save();
-    //creating a cookie and store the tokens
+    //clear cookie
+    res.clearCookie(COOKIE_NAME, {
+      httpOnly: true,
+      path: "/",
+      secure: true,
+      sameSite: "none",
+    });
+    //create cookie
+    const token = createToken(user._id.toString(), user.role, "3d");
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 3);
+    res.cookie(COOKIE_NAME, token, {
+      httpOnly: true,
+      path: "/",
+      secure: true,
+      sameSite: "none",
+      expires,
+    });
 
     return res.status(201).json({
       message: `Successfully created a user with role: ${user.role}`,
@@ -62,7 +81,24 @@ export const userLogin = async (req, res) => {
     }
     const isPasswordCorrect = await compare(password, user.password);
     if (!isPasswordCorrect) return res.status(401).send("Invalid Credentials");
-    //creating a cookie and store the tokens
+    //clear cookie
+    res.clearCookie(COOKIE_NAME, {
+      httpOnly: true,
+      path: "/",
+      secure: true,
+      sameSite: "none",
+    });
+    //create cookie
+    const token = createToken(user._id.toString(), user.role, "3d");
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 3);
+    res.cookie(COOKIE_NAME, token, {
+      httpOnly: true,
+      path: "/",
+      secure: true,
+      sameSite: "none",
+      expires,
+    });
 
     user.lastLogin = Date.now();
     await user.save();
