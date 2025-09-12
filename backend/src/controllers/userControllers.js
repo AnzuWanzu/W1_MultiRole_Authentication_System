@@ -17,8 +17,10 @@ export const createUser = async (req, res) => {
   try {
     const { name, username, email, password, role } = req.body;
     //add validations
-    const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(401).send("User already registered");
+    const existingEmail = await User.findOne({ email });
+    const existingUsername = await User.findOne({ username });
+    if (existingEmail || existingUsername)
+      return res.status(401).send("User already registered");
     //hashing of passwords
     const hashedPassword = await hash(password, 10);
     //create user:
@@ -66,8 +68,9 @@ export const userLogin = async (req, res) => {
 
     return res.status(200).json({
       message: `Successfully logged in as : ${user.username}`,
-      username: user.username,
+      name: user.name,
       lastLogin: user.lastLogin,
+      role: user.role,
     });
   } catch (error) {
     console.log("Error logging in user: ", error);
