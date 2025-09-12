@@ -22,13 +22,21 @@ export const loginValidator = [
   body("username").trim().notEmpty().withMessage("Username is required."),
   body("password")
     .trim()
-    .isLength({ min: 6 })
-    .withMessage("Password should contain atleast 6 characters."),
+    .isLength({ min: 8 })
+    .matches(/[0-9]/)
+    .withMessage("Password must contain a number.")
+    .matches(/[A-Z]/)
+    .withMessage("Password must contain an uppercase letter."),
 ];
 
 export const createUserValidator = [
   body("name").notEmpty().withMessage("Name is required"),
-  body("email").trim().isEmail().withMessage("Email is must be valid."),
+  body("email")
+    .trim()
+    .isEmail()
+    .normalizeEmail()
+    .toLowerCase()
+    .withMessage("Email is must be valid."),
   ...loginValidator,
   body("role")
     .trim()

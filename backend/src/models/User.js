@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: ["admin", "manager", "employee"],
-      required: true,
+      default: "employee",
     },
   },
   { timestamps: true } //note this automatically creates the createAt and updateAt by MongoDB
