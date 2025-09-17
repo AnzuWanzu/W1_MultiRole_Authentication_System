@@ -77,7 +77,7 @@ export const userLogin = async (req, res) => {
     //add validations
     const user = await User.findOne({ username });
     if (!user) {
-      return res.status(401).send("Invalid Credentials.");
+      return res.status(401).send("User does not exist.");
     }
     const isPasswordCorrect = await compare(password, user.password);
     if (!isPasswordCorrect) return res.status(401).send("Invalid Credentials");
