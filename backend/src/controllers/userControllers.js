@@ -21,9 +21,9 @@ export const createUser = async (req, res) => {
     //add validations
     const existingEmail = await User.findOne({ email });
     const existingUsername = await User.findOne({ username });
-    if (existingEmail) return res.status(401).send("Email already registered");
+    if (existingEmail) return res.status(400).send("Email already registered");
     if (existingUsername)
-      return res.status(401).send("Username already registered");
+      return res.status(400).send("Username already registered");
     //hashing of passwords
     const hashedPassword = await hash(password, 10);
     //create user:
