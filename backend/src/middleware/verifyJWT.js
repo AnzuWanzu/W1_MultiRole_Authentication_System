@@ -1,13 +1,5 @@
 import jwt from "jsonwebtoken";
-import { COOKIE_NAME } from "./constants.js";
-
-export const createToken = (id, role, expiresIn) => {
-  const payload = { id, role };
-  const token = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn,
-  });
-  return token;
-};
+import { COOKIE_NAME } from "../utils/constants.js";
 
 export const verifyJWT = (req, res, next) => {
   try {

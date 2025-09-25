@@ -146,3 +146,48 @@ export const deleteUser = async (req, res) => {
       });
     }
   }
+export const logout = (req, res) => {
+  try {
+    res.clearCookie(COOKIE_NAME, {
+      httpOnly: true,
+      path: "/",
+      secure: true,
+      sameSite: "none",
+    });
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.log("Error logging out: ", error);
+    return res.status(500).json({ message: "Error", cause: error.message });
+  }
+};
+
+export const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, username, email, role } = req.body;
+    if (!id) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { name, username, email, role },
+      { new: true, runValidators: true }
+    );
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json({
+      message: "User updated successfully",
+      user: {
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        username: updatedUser.username,
+        email: updatedUser.email,
+        role: updatedUser.role,
+      },
+    });
+  } catch (error) {
+    console.log("Error updating user: ", error);
+    return res.status(500).json({ message: "Error", cause: error.message });
+  }
+};

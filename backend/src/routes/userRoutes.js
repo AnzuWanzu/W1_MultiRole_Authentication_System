@@ -4,7 +4,10 @@ import {
   deleteUser,
   getAllUsers,
   userLogin,
+  logout,
+  updateUser,
 } from "../controllers/userControllers.js";
+import { verifyJWT } from "../utils/tokenManager.js";
 
 import {
   createUserValidator,
@@ -18,6 +21,8 @@ const userRoutes = Router();
 userRoutes.get("/", getAllUsers);
 userRoutes.post("/createUser", validate(createUserValidator), createUser);
 userRoutes.post("/login", validate(loginValidator), userLogin);
-userRoutes.delete("/deleteUser/:id", validate(deleteUserValidator), deleteUser);
+userRoutes.delete("/deleteUser/:id", verifyJWT, validate(deleteUserValidator), deleteUser);
+userRoutes.post("/logout", verifyJWT, logout);
+userRoutes.put("/updateUser/:id", verifyJWT, updateUser);
 
 export default userRoutes;
