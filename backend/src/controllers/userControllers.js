@@ -33,6 +33,70 @@ export const getUserById = async (req, res) => {
   }
 };
 
+export const getProfile = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    if (!mongoose.Types.ObjectId.isValid(userId))
+      return res.status(400).json({ message: "Invalid user ID" });
+
+    const user = await User.findById(userId).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    return res.status(200).json({ message: "Profile retrieved", user });
+  } catch (error) {
+    console.log("Error getting profile: ", error);
+    return res.status(500).json({ message: "Error", cause: error.message });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { currentPassword, newPassword } = req.body;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    if (!currentPassword || !newPassword)
+      return res.status(400).json({ message: "currentPassword and newPassword are required" });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const match = await compare(currentPassword, user.password);
+    if (!match) return res.status(401).json({ message: "Current password is incorrect" });
+
+    // TODO: add password strength/validation rules as needed
+    const hashed = await hash(newPassword, 10);
+    user.password = hashed;
+    await user.save();
+    return res.status(200).json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.log("Error changing password: ", error);
+    return res.status(500).json({ message: "Error", cause: error.message });
+  }
+};
+
+export const setUserRole = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+    if (!id) return res.status(400).json({ message: "User ID is required" });
+    if (!role) return res.status(400).json({ message: "Role is required" });
+    if (!mongoose.Types.ObjectId.isValid(id))
+      return res.status(400).json({ message: "Invalid user ID" });
+
+    const updated = await User.findByIdAndUpdate(
+      id,
+      { role },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!updated) return res.status(404).json({ message: "User not found" });
+    return res.status(200).json({ message: "User role updated", user: updated });
+  } catch (error) {
+    console.log("Error setting user role: ", error);
+    return res.status(500).json({ message: "Error", cause: error.message });
+  }
+};
+
 export const createUser = async (req, res) => {
   try {
     const { name, username, email, password, role } = req.body;
