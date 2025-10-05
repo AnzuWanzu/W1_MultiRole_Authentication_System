@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import mongoose from "mongoose";
 import { compare, hash } from "bcrypt";
 import { createToken } from "../utils/tokenManager.js";
 import { COOKIE_NAME } from "../utils/constants.js";
@@ -11,6 +12,23 @@ export const getAllUsers = async (req, res) => {
       .json({ message: "Successfully retrieved a list of users: ", users });
   } catch (error) {
     console.log("Error in getting list of users: ", error);
+    return res.status(500).json({ message: "Error", cause: error.message });
+  }
+};
+
+export const getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ message: "User ID is required" });
+    if (!mongoose.Types.ObjectId.isValid(id))
+      return res.status(400).json({ message: "Invalid user ID" });
+
+    const user = await User.findById(id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    return res.status(200).json({ message: "User retrieved", user });
+  } catch (error) {
+    console.log("Error getting user by id: ", error);
     return res.status(500).json({ message: "Error", cause: error.message });
   }
 };

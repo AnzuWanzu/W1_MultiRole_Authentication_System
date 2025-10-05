@@ -3,6 +3,7 @@ import {
   createUser,
   deleteUser,
   getAllUsers,
+  getUserById,
   userLogin,
   logout,
   updateUser,
@@ -19,6 +20,7 @@ import {
 const userRoutes = Router();
 
 userRoutes.get("/", getAllUsers);
+userRoutes.get("/:id", getUserById);
 userRoutes.post("/createUser", validate(createUserValidator), createUser);
 userRoutes.post("/login", validate(loginValidator), userLogin);
 userRoutes.delete("/deleteUser/:id", verifyJWT, validate(deleteUserValidator), deleteUser);
