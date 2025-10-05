@@ -1,16 +1,26 @@
 import { jest } from "@jest/globals";
+
+const mockHashFn = jest.fn().mockResolvedValue("hashedPassword");
+const mockCompareFn = jest.fn().mockResolvedValue(true);
+const mockCreateTokenFn = jest.fn().mockReturnValue("mockJWTToken");
+
 jest.unstable_mockModule("../../utils/tokenManager.js", () => ({
-  createToken: jest.fn().mockReturnValue("mockJWTToken"),
+  createToken: mockCreateTokenFn,
+}));
+
+jest.unstable_mockModule("bcrypt", () => ({
+  hash: mockHashFn,
+  compare: mockCompareFn,
 }));
 
 import * as tokenManager from "../../utils/tokenManager.js";
+import * as bcrypt from "bcrypt";
 import User from "../../models/User.js";
 import {
   createUser,
   getAllUsers,
   deleteUser,
-} from "../../controllers/userControllers.js";
-import bcrypt from "bcrypt";
+} from "../../controllers/userControllers.js"; 
 
 describe("GET / - getAllUsers Controller", () => {
   let req, res;
@@ -79,20 +89,20 @@ describe("POST /createUser - createUser Controller", () => {
       clearCookie: jest.fn(),
     };
 
-    jest.restoreAllMocks(); // reset all mocks safely
+    jest.restoreAllMocks(); 
+    // Reset our custom mock functions
+    mockHashFn.mockClear();
+    mockCompareFn.mockClear();
+    mockCreateTokenFn.mockClear();
   });
 
   it("Should create a user and return 201 with user data.", async () => {
     // Mock User.findOne to return null (no existing user)
     jest
       .spyOn(User, "findOne")
-      .mockResolvedValueOnce(null) // for email check
-      .mockResolvedValueOnce(null); // for username check
+      .mockResolvedValueOnce(null) 
+      .mockResolvedValueOnce(null);
 
-    // Mock bcrypt.hash to resolve immediately
-    jest.spyOn(bcrypt, "hash").mockResolvedValue("hashedPassword");
-
-    // Create a simple mock for the User instance
     const mockUser = {
       _id: "123",
       name: req.body.name,
@@ -103,25 +113,22 @@ describe("POST /createUser - createUser Controller", () => {
       lastLogin: null,
     };
 
-    // Mock the save method directly
     const mockSave = jest.fn().mockResolvedValue(mockUser);
 
     jest.spyOn(User.prototype, "save").mockImplementation(mockSave);
 
     await createUser(req, res);
 
-    // Verify the calls
     expect(User.findOne).toHaveBeenCalledTimes(2);
-    expect(bcrypt.hash).toHaveBeenCalledWith(req.body.password, 10);
+    expect(mockHashFn).toHaveBeenCalledWith(req.body.password, 10);
     expect(mockSave).toHaveBeenCalled();
     expect(tokenManager.createToken).toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(201);
-  }, 10000); // Increase timeout to 10 seconds for this test
+  }, 10000);
 
 describe("Validation Errors", () => {
   beforeEach(() => {
     User.findOne = jest.fn().mockResolvedValue(null);
-    jest.spyOn(bcrypt, "hash").mockResolvedValue("hashedPassword123");
   });
 
   it("Should return 500 if name is missing (Mongoose validation error)", async () => {
